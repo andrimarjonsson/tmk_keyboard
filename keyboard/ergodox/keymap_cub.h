@@ -459,6 +459,8 @@ static const uint16_t PROGMEM fn_actions_9[] = {
     [15] =  ACTION_MODS_KEY(MOD_LCTL,          KC_PPLS),    // FN15 = Ctrl+Pad Plus
 };
 
+#define CUSTOM_ACTION_FUNCTION 1
+
 void action_function(keyrecord_t *record, uint8_t id, uint8_t opt)
 {
     // print("action_function called\n");
@@ -554,6 +556,8 @@ const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt) {
     }
     return MACRO_NONE;
 }
+
+#define CUSTOM_FN_TO_ACTION_FUNCTION 1
 
 #define FN_ACTIONS_SIZE     (sizeof(fn_actions)   / sizeof(fn_actions[0]))
 #define FN_ACTIONS_4_SIZE   (sizeof(fn_actions_4) / sizeof(fn_actions_4[0]))

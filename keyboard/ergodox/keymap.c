@@ -85,6 +85,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "keymap_micro.h"
 #elif defined(KEYMAP_CUB)
 #include "keymap_cub.h"
+#elif defined(KEYMAP_ANDRI)
+#include "keymap_andri.h"
 #else
 
 static const uint8_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -201,7 +203,7 @@ void action_function(keyrecord_t *event, uint8_t id, uint8_t opt)
     }
 }
 
-#endif
+#endif // defined(KEYMAP_<name>)
 
 
 #define KEYMAPS_SIZE    (sizeof(keymaps) / sizeof(keymaps[0]))
@@ -218,12 +220,14 @@ uint8_t keymap_key_to_keycode(uint8_t layer, keypos_t key)
     }
 }
 
-#if defined(KEYMAP_CUB)
+#if defined(CUSTOM_FN_TO_ACTION_FUNCTION)
 
-// function keymap_fn_to_action will be defined in keymap_cub.h
+// function keymap_fn_to_action will be defined in keymap_<name>.h
 
 #else
-/* translates Fn keycode to action */
+/* Default implementation
+ * translates Fn keycode to action 
+ */
 action_t keymap_fn_to_action(uint8_t keycode)
 {
     action_t action;
