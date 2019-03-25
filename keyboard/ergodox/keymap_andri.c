@@ -1,4 +1,11 @@
-static const uint8_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+#include <util/delay.h>
+#include "action_layer.h"
+#include "action_util.h"
+#include "bootloader.h"
+#include "keymap_common.h"
+#include "keymap_andri_macros.h"
+
+const uint8_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
      * Default Layer(Layer 0): Querty...ish
      *
@@ -246,7 +253,7 @@ enum function_id
 /*
  * Fn action definition
  */
-static const uint16_t PROGMEM fn_actions[] = 
+const uint16_t PROGMEM fn_actions[] = 
 {
 //  [n] =   ACTION_*,                                       // FNn  - Purpose
 
@@ -265,7 +272,7 @@ static const uint16_t PROGMEM fn_actions[] =
 };
 
 /*
-static const uint16_t PROGMEM fn_actions[] = 
+const uint16_t PROGMEM fn_actions[] = 
 {
     [0] =   ACTION_FUNCTION(TEENSY_KEY),                    // FN0  - Teensy key
 
