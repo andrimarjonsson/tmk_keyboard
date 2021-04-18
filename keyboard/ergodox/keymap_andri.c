@@ -253,7 +253,7 @@ enum function_id
 /*
  * Fn action definition
  */
-const uint16_t PROGMEM fn_actions[] = 
+const action_t PROGMEM fn_actions[] = 
 {
 //  [n] =   ACTION_*,                                       // FNn  - Purpose
 
@@ -410,36 +410,3 @@ const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
 /* FN action sizes */
 #define FN_ACTIONS_SIZE     (sizeof(fn_actions) / sizeof(fn_actions[0]))
 //#define FN_ACTIONS_<name>_SIZE   (sizeof(fn_actions_<name>) / sizeof(fn_actions_<name>[0]))
-
-/*
- * Custom FN keycode to action function.
- * Can use special lookup table for each layer.
- */
-#define CUSTOM_FN_TO_ACTION_FUNCTION 1
-action_t keymap_fn_to_action(uint8_t keycode)
-{
-    uint8_t layer = biton32(layer_state);
-    (void)layer;
-
-    action_t action;
-    action.code = ACTION_NO;
-
-    // Special layer handling
-    /*
-    if (layer == <number> && FN_INDEX(keycode) < FN_ACTIONS_<number>_SIZE)
-    {
-        action.code = pgm_read_word(&fn_actions_<number>[FN_INDEX(keycode)]);
-    }
-    */
-
-    // By default, use fn_actions from default layer.
-    // this is needed to get mapping for same key, that was used switch to some layer,
-    // to have possibility to switch layers back
-    if (action.code == ACTION_NO && FN_INDEX(keycode) < FN_ACTIONS_SIZE) 
-    {
-        action.code = pgm_read_word(&fn_actions[FN_INDEX(keycode)]);
-    }
-
-    return action;
-}
-

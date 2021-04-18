@@ -103,10 +103,13 @@ OPT_DEFS += -DINTERRUPT_CONTROL_ENDPOINT
 #   Teensy halfKay   512
 #   Atmel DFU loader 4096
 #   LUFA bootloader  4096
-OPT_DEFS += -DBOOTLOADER_SIZE=512
+#OPT_DEFS += -DBOOTLOADER_SIZE=512 -DBOOTLOADER_HALFKAY
+OPT_DEFS += -DBOOTLOADER_HALFKAY
 
 # Build Options
 #   comment out to disable the options.
+BOOTLOADER = halfkay
+
 #
 BOOTMAGIC_ENABLE = yes	# Virtual DIP switch configuration(+1000)
 MOUSEKEY_ENABLE = yes	# Mouse keys(+5000)
