@@ -50,6 +50,7 @@ static uint8_t matrix[MATRIX_ROWS];
 
 static void pc98_send(uint8_t data)
 {
+    xprintf("s%02X ", data);
     PC98_RDY_PORT |= (1<<PC98_RDY_BIT);
     _delay_ms(1);
     serial_send(data);
@@ -62,6 +63,14 @@ static int16_t pc98_wait_response(void)
     int16_t code = -1;
     uint8_t timeout = 255;
     while (timeout-- && (code = serial_recv2()) == -1) _delay_ms(1);
+
+    // Keyboards require RDY pulse >=37us to send next data
+    // https://archive.org/stream/PC9800TechnicalDataBookHARDWARE1993/PC-9800TechnicalDataBook_HARDWARE1993#page/n157
+    PC98_RDY_PORT |=  (1<<PC98_RDY_BIT);
+    _delay_us(40);
+    PC98_RDY_PORT &= ~(1<<PC98_RDY_BIT);
+
+    xprintf("r%04X ", code);
     return code;
 }
 
@@ -71,13 +80,29 @@ static void pc98_inhibit_repeat(void)
 RETRY:
     pc98_send(0x9C);
     code = pc98_wait_response();
-    if (code != -1) xprintf("send 9C: %02X\n", code);
+    if (code != -1) dprintf("send 9C: %02X\n", code);
     if (code != 0xFA) return;
 
     pc98_send(0x70);
     code = pc98_wait_response();
-    if (code != -1) xprintf("send 70: %02X\n", code);
+    if (code != -1) dprintf("send 70: %02X\n", code);
     if (code != 0xFA) goto RETRY;
+}
+
+static bool pc98_is_newtype(void)
+{
+    uint16_t code;
+    pc98_send(0x9F);
+    code = pc98_wait_response();
+    if (code != 0xFA) return false;
+
+    code = pc98_wait_response();
+    if (code != 0xA0) return false;
+
+    code = pc98_wait_response();
+    if (code != 0x80) return false;
+
+    return true;
 }
 
 static uint8_t pc98_led = 0;
@@ -87,18 +112,17 @@ static void pc98_led_set(void)
 RETRY:
     pc98_send(0x9D);
     code = pc98_wait_response();
-    if (code != -1) xprintf("send 9D: %02X\n", code);
+    if (code != -1) dprintf("send 9D: %02X\n", code);
     if (code != 0xFA) return;
 
     pc98_send(pc98_led);
     code = pc98_wait_response();
-    if (code != -1) xprintf("send %02X: %02X\n", pc98_led, code);
+    if (code != -1) dprintf("send %02X: %02X\n", pc98_led, code);
     if (code != 0xFA) goto RETRY;
 }
 
 void matrix_init(void)
 {
-    debug_keyboard = true;
     PC98_RST_DDR |= (1<<PC98_RST_BIT);
     PC98_RDY_DDR |= (1<<PC98_RDY_BIT);
     PC98_RTY_DDR |= (1<<PC98_RTY_BIT);
@@ -117,6 +141,7 @@ void matrix_init(void)
     PC98_RST_PORT |= (1<<PC98_RST_BIT);     // RST: high
 
     _delay_ms(50);
+    if (pc98_is_newtype()) xprintf("new type\n"); else xprintf("old type\n");
     pc98_inhibit_repeat();
 
     // initialize matrix state: all keys off
@@ -125,7 +150,6 @@ void matrix_init(void)
     // ready to receive from keyboard
     PC98_RDY_PORT &= ~(1<<PC98_RDY_BIT);    // RDY: low
 
-    print("matrix_init done.\n");
     return;
 }
 
@@ -145,7 +169,7 @@ uint8_t matrix_scan(void)
         return 0;
     }
 
-    print_hex8(code); print(" ");
+    xprintf("r%02X ", code);
 
     if (code&0x80) {
         // break code
@@ -159,11 +183,12 @@ uint8_t matrix_scan(void)
         }
     }
 
-    // PC-9801V keyboard requires RDY pulse.
-    // This is not optimal place though, it works.
-    PC98_RDY_PORT |=  (1<<PC98_RDY_BIT);    // RDY: high
-    _delay_us(20);
-    PC98_RDY_PORT &= ~(1<<PC98_RDY_BIT);    // RDY: low
+    // Keyboards require RDY pulse >=37us to send next data
+    // https://archive.org/stream/PC9800TechnicalDataBookHARDWARE1993/PC-9800TechnicalDataBook_HARDWARE1993#page/n157
+    PC98_RDY_PORT |=  (1<<PC98_RDY_BIT);
+    _delay_us(40);
+    PC98_RDY_PORT &= ~(1<<PC98_RDY_BIT);
+
     return code;
 }
 
@@ -180,6 +205,6 @@ void led_set(uint8_t usb_led)
     pc98_led = 0x70;
     if (usb_led & (1<<USB_LED_NUM_LOCK))    pc98_led |= (1<<0);
     if (usb_led & (1<<USB_LED_CAPS_LOCK))   pc98_led |= (1<<2);
-    xprintf("usb_led: %02X\n", usb_led);
-    xprintf("pc98_led: %02X\n", pc98_led);
+    dprintf("usb_led: %02X\n", usb_led);
+    dprintf("pc98_led: %02X\n", pc98_led);
 }
